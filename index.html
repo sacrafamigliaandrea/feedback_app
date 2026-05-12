@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dopo l'app, la classe — Governance umana e co-progettazione con l'AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Fraunces:ital,wght@1,400;1,600;1,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blu:#123E90;
+    --blu-dark:#0b2a64;
+    --blu-soft:#1d4eaa;
+    --ambra:#D97706;
+    --ambra-soft:#FCD34D;
+    --ambra-bg:#FEF3C7;
+    --verde:#15803D;
+    --verde-bg:#D1FAE5;
+    --crema:#FAF8F3;
+    --grigio-1:#F3F2EE;
+    --grigio-2:#E5E3DC;
+    --grigio-3:#9B9A93;
+    --grigio-4:#4A4A47;
+    --nero:#1A1A18;
+    --bolla-andrea:#F0EEE8;
+    --bolla-claude:#FFFFFF;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'IBM Plex Sans',system-ui,sans-serif;
+    background:var(--crema);
+    color:var(--nero);
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .topbar{
+    height:54px;
+    background:#fff;
+    border-bottom:1px solid var(--grigio-2);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 28px;
+    position:relative;
+    z-index:10;
+  }
+  .topbar-left{display:flex;align-items:center;gap:14px}
+  .logo-mark{
+    width:30px;height:30px;
+    background:var(--blu);
+    color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;font-style:italic;font-weight:700;
+    font-size:18px;
+    border-radius:3px;
+  }
+  .topbar-title{
+    font-weight:500;
+    font-size:14px;
+    color:var(--grigio-4);
+    letter-spacing:0.01em;
+  }
+  .topbar-title b{color:var(--nero);font-weight:600}
+  .slide-counter{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    color:var(--grigio-3);
+    letter-spacing:0.02em;
+  }
+  .slide-counter b{color:var(--nero)}
+
+  .progress{
+    height:3px;
+    background:var(--grigio-2);
+    position:relative;
+  }
+  .progress-fill{
+    position:absolute;top:0;left:0;height:100%;
+    background:var(--blu);
+    transition:width 0.4s cubic-bezier(.4,0,.2,1);
+  }
+
+  .stage{
+    height:calc(100vh - 54px - 3px - 56px);
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    overflow:hidden;
+  }
+
+  /* PANNELLO SX */
+  .chat-pane{
+    background:var(--grigio-1);
+    border-right:1px solid var(--grigio-2);
+    display:flex;flex-direction:column;
+    overflow:hidden;
+  }
+  .chat-header{
+    padding:18px 32px 14px;
+    border-bottom:1px solid var(--grigio-2);
+    background:#fff;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .chat-header-dot{
+    width:8px;height:8px;
+    background:var(--verde);
+    border-radius:50%;
+  }
+  .chat-header-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--grigio-4);
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+  }
+  .chat-scroll{
+    flex:1;
+    overflow-y:auto;
+    padding:28px 32px 28px;
+    scroll-behavior:smooth;
+  }
+  .chat-scroll::-webkit-scrollbar{width:8px}
+  .chat-scroll::-webkit-scrollbar-track{background:transparent}
+  .chat-scroll::-webkit-scrollbar-thumb{background:var(--grigio-2);border-radius:4px}
+
+  .message{
+    margin-bottom:20px;
+    opacity:0;
+    transform:translateY(8px);
+    animation:slideIn 0.5s cubic-bezier(.4,0,.2,1) forwards;
+  }
+  .message:nth-child(1){animation-delay:0.05s}
+  .message:nth-child(2){animation-delay:0.25s}
+  .message:nth-child(3){animation-delay:0.45s}
+  .message:nth-child(4){animation-delay:0.65s}
+  @keyframes slideIn{to{opacity:1;transform:translateY(0)}}
+
+  .message-meta{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    margin-bottom:6px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .message.andrea .message-meta{color:var(--blu)}
+  .message.claude .message-meta{color:var(--grigio-3)}
+
+  .avatar-mini{
+    width:18px;height:18px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:10px;font-weight:700;
+    font-family:'IBM Plex Sans',sans-serif;
+  }
+  .message.andrea .avatar-mini{background:var(--blu);color:#fff}
+  .message.claude .avatar-mini{
+    background:var(--nero);color:#fff;
+    font-family:'Fraunces',serif;font-style:italic;
+  }
+
+  .bubble{
+    padding:14px 18px;
+    border-radius:14px;
+    font-size:14.5px;
+    line-height:1.55;
+    border:1px solid var(--grigio-2);
+  }
+  .message.andrea .bubble{
+    background:var(--bolla-andrea);
+    border-color:transparent;
+  }
+  .message.claude .bubble{
+    background:var(--bolla-claude);
+  }
+  .bubble strong{font-weight:600}
+  .bubble em{font-style:italic;color:var(--grigio-4)}
+  .bubble .highlight{
+    background:linear-gradient(transparent 55%,var(--ambra-soft) 55%);
+    padding:0 2px;
+    font-weight:500;
+  }
+  .bubble ul{margin:8px 0 4px 18px;padding:0}
+  .bubble li{margin-bottom:3px;font-size:14px}
+  .bubble p{margin-bottom:10px}
+  .bubble p:last-child{margin-bottom:0}
+  .bubble .note{
+    margin-top:10px;
+    padding:10px 12px;
+    background:var(--grigio-1);
+    border-left:3px solid var(--blu);
+    font-size:13.5px;
+    color:var(--grigio-4);
+    border-radius:3px;
+  }
+  .bubble .screenshot-ref{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:var(--ambra-bg);
+    color:var(--ambra);
+    padding:3px 10px;
+    border-radius:12px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    font-weight:500;
+    margin-bottom:8px;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+  }
+
+  /* PANNELLO DX */
+  .stage-pane{
+    background:var(--blu);
+    color:#fff;
+    overflow:hidden;
+    display:flex;flex-direction:column;
+    position:relative;
+  }
+  .stage-pane::before{
+    content:'';
+    position:absolute;
+    top:0;right:0;
+    width:300px;height:300px;
+    background:radial-gradient(circle at 100% 0%,rgba(255,255,255,0.06),transparent 70%);
+    pointer-events:none;
+  }
+  .stage-content{
+    flex:1;
+    padding:50px 60px;
+    overflow-y:auto;
+    display:flex;flex-direction:column;
+    justify-content:center;
+    position:relative;
+    z-index:1;
+  }
+  .stage-content::-webkit-scrollbar{width:8px}
+  .stage-content::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:4px}
+
+  .stage-tag{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:rgba(255,255,255,0.7);
+    margin-bottom:22px;
+    padding:0 12px 8px 0;
+    border-bottom:1px solid rgba(255,255,255,0.2);
+    width:fit-content;
+  }
+  .stage-tag.governance{
+    color:var(--ambra-soft);
+    border-bottom-color:var(--ambra-soft);
+  }
+  .stage-tag-num{
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-size:18px;
+    font-weight:700;
+  }
+
+  .stage-title{
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-weight:600;
+    font-size:46px;
+    line-height:1.08;
+    margin-bottom:22px;
+    letter-spacing:-0.01em;
+  }
+  .stage-title.lg{font-size:60px;line-height:1.04}
+  .stage-title em{
+    font-style:italic;
+    background:linear-gradient(transparent 60%,rgba(252,211,77,0.4) 60%);
+    padding:0 2px;
+  }
+
+  .stage-body{
+    font-size:17px;
+    line-height:1.65;
+    color:rgba(255,255,255,0.92);
+    max-width:560px;
+  }
+  .stage-body p{margin-bottom:14px}
+  .stage-body strong{color:#fff;font-weight:600}
+
+  .principle-box{
+    margin-top:28px;
+    padding:22px 26px;
+    background:rgba(255,255,255,0.07);
+    border-left:3px solid var(--ambra-soft);
+    border-radius:0 6px 6px 0;
+    max-width:560px;
+  }
+  .principle-box-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:0.15em;
+    color:var(--ambra-soft);
+    margin-bottom:8px;
+  }
+  .principle-box-text{
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-size:19px;
+    line-height:1.4;
+    color:#fff;
+  }
+
+  /* Cover */
+  .cover-content{text-align:left}
+  .cover-pretitle{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:0.16em;
+    color:rgba(255,255,255,0.6);
+    margin-bottom:24px;
+  }
+  .cover-title{
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-weight:700;
+    font-size:72px;
+    line-height:1.0;
+    margin-bottom:32px;
+    letter-spacing:-0.02em;
+  }
+  .cover-subtitle{
+    font-size:20px;
+    line-height:1.5;
+    color:rgba(255,255,255,0.85);
+    max-width:520px;
+    margin-bottom:48px;
+  }
+  .cover-meta{
+    display:flex;gap:32px;
+    padding-top:24px;
+    border-top:1px solid rgba(255,255,255,0.2);
+    max-width:520px;
+  }
+  .cover-meta-item{flex:1}
+  .cover-meta-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:rgba(255,255,255,0.5);
+    margin-bottom:6px;
+  }
+  .cover-meta-value{
+    font-size:14px;
+    color:#fff;
+    font-weight:500;
+  }
+
+  /* Premessa pane */
+  .premise-pane{
+    background:var(--crema);
+    color:var(--nero);
+  }
+  .premise-pane .stage-tag{
+    color:var(--blu);
+    border-bottom-color:var(--blu);
+  }
+  .premise-pane .stage-title{color:var(--blu)}
+  .premise-pane .stage-body{color:var(--grigio-4)}
+  .premise-pane .stage-body strong{color:var(--nero)}
+  .premise-pane::before{display:none}
+
+  .premise-stats{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:24px;
+    margin-top:28px;
+    max-width:540px;
+  }
+  .premise-stat-num{
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-weight:700;
+    font-size:42px;
+    color:var(--blu);
+    line-height:1;
+    margin-bottom:6px;
+  }
+  .premise-stat-label{
+    font-size:13px;
+    color:var(--grigio-4);
+    line-height:1.4;
+  }
+
+  /* Synth grid */
+  .synth-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:14px;
+    margin-top:24px;
+    max-width:600px;
+  }
+  .synth-card{
+    background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.12);
+    padding:18px 20px;
+    border-radius:8px;
+  }
+  .synth-card-num{
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-size:28px;
+    font-weight:700;
+    color:var(--ambra-soft);
+    margin-bottom:6px;
+    line-height:1;
+  }
+  .synth-card-title{
+    font-weight:600;
+    font-size:15px;
+    margin-bottom:6px;
+    color:#fff;
+  }
+  .synth-card-text{
+    font-size:13.5px;
+    line-height:1.5;
+    color:rgba(255,255,255,0.78);
+  }
+
+  /* Protocol list */
+  .protocol-list{
+    list-style:none;
+    margin-top:20px;
+    max-width:580px;
+  }
+  .protocol-item{
+    display:flex;
+    gap:18px;
+    padding:14px 0;
+    border-bottom:1px solid rgba(255,255,255,0.12);
+  }
+  .protocol-item:last-child{border-bottom:none}
+  .protocol-num{
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-size:22px;
+    font-weight:700;
+    color:var(--ambra-soft);
+    line-height:1.3;
+    min-width:30px;
+  }
+  .protocol-text{
+    font-size:15.5px;
+    line-height:1.5;
+  }
+  .protocol-text strong{color:#fff;font-weight:600}
+
+  /* FOOTER */
+  .footer{
+    height:56px;
+    background:#fff;
+    border-top:1px solid var(--grigio-2);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 28px;
+  }
+  .nav-btn{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:9px 16px;
+    background:transparent;
+    border:1px solid var(--grigio-2);
+    border-radius:6px;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:13px;
+    font-weight:500;
+    color:var(--nero);
+    cursor:pointer;
+    transition:all 0.15s;
+  }
+  .nav-btn:hover:not(:disabled){
+    background:var(--blu);
+    color:#fff;
+    border-color:var(--blu);
+  }
+  .nav-btn:disabled{
+    opacity:0.3;
+    cursor:not-allowed;
+  }
+  .nav-btn svg{width:14px;height:14px}
+  .hint{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    color:var(--grigio-3);
+    letter-spacing:0.04em;
+  }
+  .hint kbd{
+    background:var(--grigio-1);
+    border:1px solid var(--grigio-2);
+    border-bottom-width:2px;
+    border-radius:3px;
+    padding:1px 6px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--grigio-4);
+    margin:0 1px;
+  }
+
+  /* Mini-app frame */
+  .miniapp{
+    width:240px;
+    height:480px;
+    background:#1a1a1a;
+    border-radius:32px;
+    padding:8px;
+    box-shadow:0 30px 60px -20px rgba(18,62,144,0.35), 0 10px 25px -10px rgba(0,0,0,0.2);
+    position:relative;
+  }
+  .miniapp-screen{
+    width:100%;height:100%;
+    background:#075E54;
+    border-radius:24px;
+    overflow:hidden;
+    position:relative;
+  }
+  .miniapp-bar{
+    background:#075E54;
+    padding:18px 16px 14px;
+    color:#fff;
+    font-size:11px;
+    font-weight:500;
+    display:flex;align-items:center;gap:8px;
+  }
+  .miniapp-bar-avatar{
+    width:24px;height:24px;
+    background:#fff;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    color:#075E54;
+    font-weight:700;
+    font-size:11px;
+  }
+  .miniapp-body{
+    background:#ECE5DD;
+    padding:14px 10px;
+    height:calc(100% - 60px);
+    position:relative;
+  }
+  .miniapp-msg{
+    background:#fff;
+    padding:8px 10px;
+    border-radius:8px;
+    font-size:10.5px;
+    line-height:1.35;
+    color:#111;
+    max-width:78%;
+    margin-bottom:8px;
+    box-shadow:0 1px 0.5px rgba(0,0,0,0.13);
+  }
+  .miniapp-tap{
+    position:absolute;
+    bottom:30px;left:50%;
+    transform:translateX(-50%);
+    background:var(--ambra);
+    color:#fff;
+    padding:8px 16px;
+    border-radius:18px;
+    font-size:11px;
+    font-weight:600;
+    box-shadow:0 4px 12px rgba(217,119,6,0.4);
+    animation:tapPulse 1.6s ease-in-out infinite;
+  }
+  @keyframes tapPulse{
+    0%,100%{transform:translateX(-50%) scale(1)}
+    50%{transform:translateX(-50%) scale(1.04)}
+  }
+
+  /* Flow */
+  .flow{
+    display:flex;
+    flex-direction:column;
+    gap:0;
+    margin-top:8px;
+    max-width:560px;
+  }
+  .flow-step{
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .flow-step-icon{
+    width:42px;height:42px;
+    border-radius:50%;
+    background:#fff;
+    border:1.5px solid var(--blu);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--blu);
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-weight:700;
+    flex-shrink:0;
+    font-size:18px;
+  }
+  .flow-step-text{
+    font-size:14.5px;
+    line-height:1.45;
+    color:var(--grigio-4);
+  }
+  .flow-step-text b{color:var(--nero);font-weight:600}
+  .flow-connector{
+    width:1px;
+    height:14px;
+    background:var(--grigio-2);
+    margin-left:21px;
+  }
+
+  .check-list{
+    list-style:none;
+  }
+  .check-list li{
+    padding:6px 0 6px 26px;
+    position:relative;
+    font-size:14px;
+    line-height:1.5;
+  }
+  .check-list li::before{
+    content:'';
+    position:absolute;
+    left:0;top:11px;
+    width:14px;height:14px;
+    border:1.5px solid var(--blu);
+    border-radius:3px;
+  }
+  .check-list li b{color:var(--nero);font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo-mark">A</div>
+    <div class="topbar-title">
+      <b>Dopo l'app, la classe</b> · Governance umana e co-progettazione con l'AI
+    </div>
+  </div>
+  <div class="slide-counter">
+    <b id="curNum">01</b> / <span id="totNum">12</span>
+  </div>
+</div>
+
+<div class="progress"><div class="progress-fill" id="progFill"></div></div>
+
+<div class="stage" id="stage"></div>
+
+<div class="footer">
+  <button class="nav-btn" id="prevBtn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    Indietro
+  </button>
+  <div class="hint">
+    <kbd>←</kbd> <kbd>→</kbd> per navigare &nbsp;·&nbsp; <kbd>F</kbd> per a tutto schermo
+  </div>
+  <button class="nav-btn" id="nextBtn">
+    Avanti
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+  </button>
+</div>
+
+<script>
+const slides = [
+  // ========== 1. COVER ==========
+  {
+    type:'cover',
+    leftIllustration:`
+      <svg viewBox="0 0 480 480" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;max-width:480px">
+        <defs>
+          <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#E5E3DC" stroke-width="0.5"/>
+          </pattern>
+          <marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <path d="M 0 0 L 6 3 L 0 6 z" fill="#D97706"/>
+          </marker>
+        </defs>
+        <rect width="480" height="480" fill="url(#grid)"/>
+        <g stroke="#123E90" stroke-width="1.5" fill="none" opacity="0.4">
+          <path d="M 130 240 Q 240 180 350 240" stroke-dasharray="4 4"/>
+          <path d="M 130 240 Q 240 300 350 240" stroke-dasharray="4 4"/>
+        </g>
+        <g>
+          <circle cx="130" cy="240" r="58" fill="#123E90"/>
+          <text x="130" y="258" text-anchor="middle" fill="#fff" font-family="Fraunces" font-style="italic" font-weight="700" font-size="56">A</text>
+          <text x="130" y="325" text-anchor="middle" fill="#4A4A47" font-family="IBM Plex Mono" font-size="11" letter-spacing="2">DOCENTE</text>
+        </g>
+        <g>
+          <circle cx="350" cy="240" r="58" fill="#1A1A18"/>
+          <text x="350" y="262" text-anchor="middle" fill="#fff" font-family="Fraunces" font-style="italic" font-weight="700" font-size="56">C</text>
+          <text x="350" y="325" text-anchor="middle" fill="#4A4A47" font-family="IBM Plex Mono" font-size="11" letter-spacing="2">AI</text>
+        </g>
+        <g>
+          <circle cx="220" cy="120" r="9" fill="#D97706"/>
+          <circle cx="240" cy="115" r="9" fill="#D97706"/>
+          <circle cx="260" cy="120" r="9" fill="#D97706"/>
+          <text x="240" y="95" text-anchor="middle" fill="#4A4A47" font-family="IBM Plex Mono" font-size="10" letter-spacing="1.5">LA CLASSE</text>
+        </g>
+        <g stroke="#D97706" stroke-width="1.5" fill="none">
+          <path d="M 225 135 L 155 205" marker-end="url(#arr)"/>
+          <path d="M 258 135 L 328 205" marker-end="url(#arr)"/>
+        </g>
+        <text x="240" y="400" text-anchor="middle" fill="#9B9A93" font-family="Fraunces" font-style="italic" font-size="14">il feedback parte da chi vede gli studenti</text>
+      </svg>`,
+    right:`
+      <div class="stage-content cover-content">
+        <div class="cover-pretitle">Formazione docenti · Sacra Famiglia</div>
+        <div class="cover-title">Dopo l'app,<br><em>la classe.</em></div>
+        <div class="cover-subtitle">Cosa succede quando un'app didattica costruita con l'AI viene messa nelle mani degli studenti. Cinque mosse di governance umana sul caso <b>Truffa della Ballerina</b>.</div>
+        <div class="cover-meta">
+          <div class="cover-meta-item">
+            <div class="cover-meta-label">Relatore</div>
+            <div class="cover-meta-value">Andrea Cerioli</div>
+          </div>
+          <div class="cover-meta-item">
+            <div class="cover-meta-label">Durata</div>
+            <div class="cover-meta-value">≈ 35 min</div>
+          </div>
+          <div class="cover-meta-item">
+            <div class="cover-meta-label">Per</div>
+            <div class="cover-meta-value">Docenti SF</div>
+          </div>
+        </div>
+      </div>`,
+    isCover:true,
+  },
+
+  // ========== 2. IL CASO ==========
+  {
+    type:'premise',
+    leftIllustration:`
+      <div class="miniapp">
+        <div class="miniapp-screen">
+          <div class="miniapp-bar">
+            <div class="miniapp-bar-avatar">Z</div>
+            <div>
+              <div style="font-weight:600">Zia Maria</div>
+              <div style="font-size:9px;opacity:0.7">online</div>
+            </div>
+          </div>
+          <div class="miniapp-body">
+            <div class="miniapp-msg">Ciao caro! Mia nipote Federica è in finale per Miss Bambina d'Italia</div>
+            <div class="miniapp-msg">Voti per lei? È un attimo, basta un click</div>
+            <div class="miniapp-msg" style="font-size:9.5px;color:#0066CC;text-decoration:underline">votafederica-talent.ru/vote?id=88421</div>
+            <div class="miniapp-tap">tocca per votare</div>
+          </div>
+        </div>
+      </div>`,
+    right:`
+      <div class="stage-content">
+        <div class="stage-tag"><span class="stage-tag-num">01</span> Il caso</div>
+        <h1 class="stage-title">L'app non finisce quando <em>funziona</em>.<br>Finisce quando ha <em>attraversato</em> la classe.</h1>
+        <div class="stage-body">
+          <p><b>Truffa della Ballerina</b> è un'app sulla cittadinanza digitale: simula una truffa via WhatsApp che ruba l'account della vittima e si propaga ai suoi contatti. L'avevo costruita con Claude per il percorso di seconda secondaria.</p>
+          <p>Tecnicamente girava perfettamente. Ma <b>la verità non era nel codice — era negli studenti</b>.</p>
+        </div>
+        <div class="premise-stats">
+          <div>
+            <div class="premise-stat-num">50</div>
+            <div class="premise-stat-label">scenari nel simulatore</div>
+          </div>
+          <div>
+            <div class="premise-stat-num">25′</div>
+            <div class="premise-stat-label">tempo reale di esecuzione</div>
+          </div>
+          <div>
+            <div class="premise-stat-num">2ª</div>
+            <div class="premise-stat-label">media · lab informatica</div>
+          </div>
+        </div>
+      </div>`,
+    isPremise:true,
+  },
+
+  // ========== 3. ANDREA CONSEGNA IL FEEDBACK ==========
+  {
+    type:'chat',
+    chat:[
+      {
+        speaker:'andrea',
+        text:'allora ti restituisco il feedback dopo aver somministrato questa attività ad alcuni dei miei studenti'
+      },
+      {
+        speaker:'claude',
+        text:`Ottimo, dimmi pure. Mi serve sapere:
+        <ul>
+          <li><b>Che classe/i</b> e quanti studenti</li>
+          <li><b>Setting</b>: laboratorio, casa, durata effettiva</li>
+          <li><b>Comportamenti osservati</b>: dove si bloccano, dove cliccano senza pensare</li>
+          <li><b>Cosa hanno detto loro</b> (commenti, domande, lamentele)</li>
+          <li><b>Sorprese</b>: errori inaspettati, scenari che hanno generato discussione</li>
+        </ul>
+        <span class="highlight">Non devi rispondere a tutto in ordine — buttami i feedback come ti arrivano. Io ascolto, poi vediamo insieme cosa intervenire.</span>`
+      },
+    ],
+    right:`
+      <div class="stage-content">
+        <div class="stage-tag"><span class="stage-tag-num">02</span> L'apertura del feedback loop</div>
+        <h1 class="stage-title">L'AI non chiede <em>"è piaciuta?"</em>.<br>Chiede <em>cosa hai visto</em>.</h1>
+        <div class="stage-body">
+          <p>La qualità di un feedback didattico non sta nelle opinioni, ma nei <b>comportamenti osservati</b>: dove si bloccano, dove cliccano senza leggere, cosa saltano, cosa li sorprende.</p>
+          <p>È questa la materia prima della revisione. Non i "mi è piaciuto", ma <b>i micro-eventi della classe reale</b>.</p>
+        </div>
+        <div class="principle-box">
+          <div class="principle-box-label">Punto di metodo</div>
+          <div class="principle-box-text">Una buona conversazione con l'AI dopo la prova in classe inizia con un'osservazione, non con un giudizio.</div>
+        </div>
+      </div>`,
+  },
+
+  // ========== 4. ANDREA RACCONTA + CLAUDE DIAGNOSTICA ==========
+  {
+    type:'chat',
+    chat:[
+      {
+        speaker:'andrea',
+        text:`Studenti di seconda secondaria, laboratorio di informatica. <span class="highlight">Attività piaciuta, coinvolgente, tratta di cose capitate in famiglia</span>. Lato negativo: hanno imparato in fretta come superare i livelli, cliccano e non posso essere certo che leggano il contenuto. <b>Cosa gli resta?</b> Il senso che non bisogna fidarsi, ma il meccanismo di come gli hacker ottengono i numeri WhatsApp resta oscuro. Attività svolta in circa 25 minuti.`
+      },
+      {
+        speaker:'claude',
+        text:`Feedback prezioso. Diagnosi precisa:
+        <ul>
+          <li>Hanno trovato il <b>pattern di gioco</b> e lo eseguono.</li>
+          <li>Il <b>messaggio residuo è generico</b> ("non fidarsi") invece di meccanicistico.</li>
+          <li><b>Manca la comprensione del "come"</b>.</li>
+        </ul>
+        <div class="note">È il problema classico del serious game che si rinforza come gioco e si svuota come apprendimento. Propongo di <b>tagliare il simulatore da 50 a 15 scenari</b> e aggiungere una schermata animata "Dietro le quinte" col meccanismo del furto dell'account.</div>`
+      },
+    ],
+    right:`
+      <div class="stage-content">
+        <div class="stage-tag"><span class="stage-tag-num">03</span> La diagnosi dell'AI</div>
+        <h1 class="stage-title">Claude propone:<br><em>tagliare</em> 50 → 15 scenari.</h1>
+        <div class="stage-body">
+          <p>La diagnosi è tecnicamente corretta: <b>50 scenari × 30 secondi = pattern matching</b>, non comprensione. L'AI ragiona sul dato (tempo × ripetizioni) e propone una soluzione ortodossa: <em>meno è meglio</em>.</p>
+          <p>Una proposta che, sulla carta, è ineccepibile.</p>
+        </div>
+        <div class="principle-box">
+          <div class="principle-box-label">Attenzione</div>
+          <div class="principle-box-text">L'AI vede l'app. Non vede la classe. Sta per arrivare la prima mossa di governance del docente.</div>
+        </div>
+      </div>`,
+  },
+
+  // ========== 5. GOVERNANCE 1 - IL RIFIUTO ==========
+  {
+    type:'chat',
+    chat:[
+      {
+        speaker:'andrea',
+        text:`In verità io ho a disposizione 50 minuti, quindi vorrei rallentare i loro click, obbligarli alla lettura/ascolto, ma <span class="highlight">i 50 scenari non li taglierei</span> e ti spiego perché: alcuni studenti saranno sempre più veloci di altri, non ci posso fare nulla. <b>Quella è la realtà oggi delle classi</b>: polarizzazione tra studenti super veloci e studenti che non ce la fanno.
+        <div class="note">Lo scopo non è che tutti facciano tutto, ma che tutti abbiano qualcosa da fare che li stimoli.</div>`
+      },
+    ],
+    right:`
+      <div class="stage-content">
+        <div class="stage-tag governance"><span class="stage-tag-num">①</span> Governance umana</div>
+        <h1 class="stage-title">Il <em>rifiuto</em> motivato.</h1>
+        <div class="stage-body">
+          <p>Andrea respinge la proposta tecnicamente corretta di Claude. Non perché sia sbagliata in astratto — ma perché <b>l'AI non conosce la sua classe</b>.</p>
+          <p>La <b>polarizzazione</b> tra studenti veloci e lenti è il dato reale. Tagliare a 15 scenari significa progettare per il livello medio basso. Significa <em>appiattire</em> in nome dell'inclusione.</p>
+          <p>La risposta è un principio progettuale: <b>abbondanza disponibile, libertà di consumo</b>.</p>
+        </div>
+        <div class="principle-box">
+          <div class="principle-box-label">Mossa 1 di 5</div>
+          <div class="principle-box-text">Il docente è l'unico che conosce la varianza interna della classe. L'AI ottimizza per la media — il docente progetta per la diversità.</div>
+        </div>
+      </div>`,
+  },
+
+  // ========== 6. GOVERNANCE 2 - IL RIBALTAMENTO ==========
+  {
+    type:'chat',
+    chat:[
+      {
+        speaker:'andrea',
+        text:`Interverrei sulla lettura delle analisi: farle <span class="highlight">comparire una alla volta e farle leggere ad una voce</span>, così li obbliga a rallentare, ascoltare. Altro step: la verifica del meccanismo della truffa. Per questo potrebbe essere sufficiente <b>mettere in ordine cronologico gli eventi</b> che compongono l'esatta dinamica. Questo lo farei subito dopo il video.`
+      },
+    ],
+    right:`
+      <div class="stage-content">
+        <div class="stage-tag governance"><span class="stage-tag-num">②</span> Governance umana</div>
+        <h1 class="stage-title">Da <em>animazione passiva</em><br>a <em>riordino attivo</em>.</h1>
+        <div class="stage-body">
+          <p>Claude aveva proposto un'<b>animazione</b> per mostrare il meccanismo del furto. Andrea ribalta: lo studente non guarda — <b>ricostruisce</b>.</p>
+          <p>Stesso contenuto, attivazione cognitiva opposta. È la differenza tra <em>vedere</em> e <em>capire</em>. Trasmissione vs costruttivismo, applicato in 30 secondi di conversazione.</p>
+          <p>Più: il TTS strict diventa <b>freno cognitivo</b>. La voce obbliga al ritmo della lettura.</p>
+        </div>
+        <div class="principle-box">
+          <div class="principle-box-label">Mossa 2 di 5</div>
+          <div class="principle-box-text">L'AI offre soluzioni. Il docente sceglie quale traiettoria cognitiva la soluzione attiva.</div>
+        </div>
+      </div>`,
+  },
+
+  // ========== 7. CLAUDE RICONOSCE L'ERRORE ==========
+  {
+    type:'chat',
+    chat:[
+      {
+        speaker:'claude',
+        text:`<span class="highlight"><b>Sui 50 scenari hai ragione tu e io avevo torto.</b></span>
+        <p>La polarizzazione è realtà, e progettare "perché tutti finiscano" significa progettare per il livello medio basso, che è l'errore tipico della scuola che vuole essere inclusiva e finisce per essere appiattente.</p>
+        <p>E ribalto anche quello che ti avevo proposto io: <b>la sequenza cronologica come task attivo dopo il video è migliore della mia animazione passiva</b>. Io ti avevo proposto di mostrare il meccanismo, tu mi proponi di farglielo <em>ricostruire</em>. <b>Costruttivismo puro vs trasmissione frontale — vince il tuo</b>.</p>`
+      },
+    ],
+    right:`
+      <div class="stage-content">
+        <div class="stage-tag"><span class="stage-tag-num">04</span> Il cambio di posizione</div>
+        <h1 class="stage-title">Un'AI ben usata <em>si corregge</em>.</h1>
+        <div class="stage-body">
+          <p>Questo passaggio è quello che spesso non si vede nelle dimostrazioni di AI in didattica: il momento in cui <b>il modello cambia idea</b>.</p>
+          <p>Non perché abbia ragionato meglio. Perché il docente gli ha portato un dato che lui non aveva: <b>la realtà della classe</b>.</p>
+          <p>La conversazione produttiva non è "chiedo e ottengo". È <b>discussione tra esperti diversi</b>: uno sa l'app, l'altro sa gli studenti.</p>
+        </div>
+        <div class="principle-box">
+          <div class="principle-box-label">Principio operativo</div>
+          <div class="principle-box-text">Se l'AI non ti contraddice mai, non la stai usando come collaboratore — la stai usando come stampante.</div>
+        </div>
+      </div>`,
+  },
+
+  // ========== 8. GOVERNANCE 3 - TTS STRICT ==========
+  {
+    type:'chat',
+    chat:[
+      {
+        speaker:'andrea',
+        text:`Questa app viene somministrata solo sui Mac del laboratorio quindi <span class="highlight">sfrutta al massimo lo schermo da 22 pollici</span>, anche aumentando la dimensione delle finestre laterali allo smartphone virtualizzato (lascia che respiri nel centro dello schermo). <b>TTS strict perché tutti i Mac hanno gli auricolari.</b>`
+      },
+      {
+        speaker:'claude',
+        text:`Vincoli registrati: Mac 22", TTS strict, layout che respiri. Estendo il TTS al check-gate del simulatore: ogni casella si rivela una alla volta, mentre viene letta è bloccata, a fine audio diventa cliccabile.
+        <div class="note">Pannelli laterali allargati da 300 a 380px, gap aumentato da 20 a 32px — sul Mac 22" lo smartphone respira al centro.</div>`
+      },
+    ],
+    right:`
+      <div class="stage-content">
+        <div class="stage-tag governance"><span class="stage-tag-num">③</span> Governance umana</div>
+        <h1 class="stage-title">Il vincolo <em>fisico</em><br>che diventa <em>didattico</em>.</h1>
+        <div class="stage-body">
+          <p>"<b>Mac 22 pollici</b>" non è un dettaglio tecnico. È una scelta pedagogica: gli studenti svolgeranno l'attività in un setting controllato, con cuffie, su schermo grande.</p>
+          <p>Da questo dato discende tutto: TTS strict (perché c'è l'audio), layout largo (perché c'è lo schermo), niente fallback per cellulare (perché non serve).</p>
+          <p>Il docente <b>fissa il contesto d'uso</b>. L'AI ottimizza dentro quel contesto.</p>
+        </div>
+        <div class="principle-box">
+          <div class="principle-box-label">Mossa 3 di 5</div>
+          <div class="principle-box-text">Senza vincoli reali (aula, tempo, dispositivi, livello), l'AI produce soluzioni generiche. Con vincoli, produce soluzioni didatticamente situate.</div>
+        </div>
+      </div>`,
+  },
+
+  // ========== 9. GOVERNANCE 4 - BOX CONTA CARATTERI ==========
+  {
+    type:'chat',
+    chat:[
+      {
+        speaker:'andrea',
+        text:`<div class="screenshot-ref">📷 screenshot allegato</div><span class="highlight">Questo box di testo non valida le risposte, conta solamente i caratteri. Così non va bene!</span> Pensi che costruire un Google Sheet per la raccolta dei dati sia un lavoro ancora fattibile? Punteggi e voti non mi interessano, preferisco ragionare per competenze apprese. <b>Ma come facciamo a valutare le risposte aperte?</b> Mettiamo parole chiave come tag che si accendono quando lo studente le inserisce: questo sarebbe scaffolding per la stesura di un commento guidato.`
+      },
+      {
+        speaker:'claude',
+        text:`Sì, è tutto fattibile. <span class="highlight">È la richiesta più importante finora</span> — sposta la valutazione da metrica (caratteri) a competenza (concetti compresi) e dà al docente dati veri per ragionare. Lo costruisco interamente in questa iterazione.`
+      },
+    ],
+    right:`
+      <div class="stage-content">
+        <div class="stage-tag governance"><span class="stage-tag-num">④</span> Governance umana</div>
+        <h1 class="stage-title">Il problema <em>invisibile</em><br>finché non c'è uno studente.</h1>
+        <div class="stage-body">
+          <p>Il box "minimo 15 caratteri" sembrava una validazione. Solo guardando gli studenti — che digitavano "asdfasdfasdfasdf" — Andrea capisce: <b>conta caratteri, non concetti</b>.</p>
+          <p>Nasce così lo <b>scaffolding semantico</b>: tag con parole-radice (emozion-, paur-, verific-) che si accendono mentre lo studente scrive. Non valuta il testo: <em>guida la costruzione del pensiero</em>.</p>
+          <p>È un'invenzione didattica vera, e nasce da un'osservazione che <b>solo in classe può emergere</b>.</p>
+        </div>
+        <div class="principle-box">
+          <div class="principle-box-label">Mossa 4 di 5</div>
+          <div class="principle-box-text">Alcuni bug non sono tecnici. Sono pedagogici. E si vedono solo quando uno studente smonta in 4 secondi quello che ti era costato ore costruire.</div>
+        </div>
+      </div>`,
+  },
+
+  // ========== 10. GOVERNANCE 5 - TUTTI DEVONO RICEVERE IL FEEDBACK ==========
+  {
+    type:'chat',
+    chat:[
+      {
+        speaker:'andrea',
+        text:`Visto che non tutti riusciranno a terminare l'attività dei 50 scenari, <span class="highlight">deve esserci un pulsante che gli permetta di terminare l'attività perché io glielo chiedo</span> (il tempo a disposizione è scaduto), ma <b>tutti devono poter ricevere il feedback a prescindere dalla quantità di scenari effettivamente svolti</b>.`
+      },
+      {
+        speaker:'claude',
+        text:`Giusto. È un punto pratico che cambia molto: <span class="highlight">il feedback non è un premio per chi finisce, è il punto pedagogico</span>. Tutti devono arrivarci. Serve un bottone "Termina e ricevi il feedback" sempre visibile durante il simulatore.`
+      },
+    ],
+    right:`
+      <div class="stage-content">
+        <div class="stage-tag governance"><span class="stage-tag-num">⑤</span> Governance umana</div>
+        <h1 class="stage-title">Il <em>diritto</em><br>al feedback.</h1>
+        <div class="stage-body">
+          <p>L'ultima mossa è la più radicale. Non è tecnica: è <b>etica</b>.</p>
+          <p>Chi non finisce non viene escluso dalla restituzione. Lo studente lento, lo studente che si è bloccato, lo studente che ha capito al settimo scenario e poi si è perso: <b>tutti ricevono lo specchio di quello che hanno costruito</b>.</p>
+          <p>Il feedback non è il <em>premio</em> della prestazione. È il <em>punto</em> dell'attività.</p>
+        </div>
+        <div class="principle-box">
+          <div class="principle-box-label">Mossa 5 di 5</div>
+          <div class="principle-box-text">Le scelte etiche stanno nel codice. Un bottone "termina e ricevi il feedback" non è UX — è la posizione del docente sull'inclusione, scritta in JavaScript.</div>
+        </div>
+      </div>`,
+  },
+
+  // ========== 11. SINTESI ==========
+  {
+    type:'synth',
+    leftIllustration:`
+      <div style="padding:40px 50px;height:100%;display:flex;flex-direction:column;justify-content:center;background:var(--crema);width:100%">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.12em;color:var(--blu);margin-bottom:18px">Il ciclo</div>
+        <h2 style="font-family:'Fraunces',serif;font-style:italic;font-size:36px;font-weight:600;color:var(--blu);line-height:1.05;margin-bottom:28px">Costruisci.<br>Sperimenta.<br>Osserva.<br>Riapri la chat.</h2>
+        <div class="flow">
+          <div class="flow-step">
+            <div class="flow-step-icon">1</div>
+            <div class="flow-step-text"><b>Costruisci</b> l'app con l'AI · prima versione</div>
+          </div>
+          <div class="flow-connector"></div>
+          <div class="flow-step">
+            <div class="flow-step-icon">2</div>
+            <div class="flow-step-text"><b>Porta in classe</b> · setting reale, studenti reali</div>
+          </div>
+          <div class="flow-connector"></div>
+          <div class="flow-step">
+            <div class="flow-step-icon">3</div>
+            <div class="flow-step-text"><b>Osserva comportamenti</b> · non parole, non punteggi</div>
+          </div>
+          <div class="flow-connector"></div>
+          <div class="flow-step">
+            <div class="flow-step-icon">4</div>
+            <div class="flow-step-text"><b>Riapri la chat</b> · porta dati, non desideri</div>
+          </div>
+          <div class="flow-connector"></div>
+          <div class="flow-step">
+            <div class="flow-step-icon">5</div>
+            <div class="flow-step-text"><b>Decidi tu</b> cosa tenere, cosa cambiare, cosa rifiutare</div>
+          </div>
+        </div>
+      </div>`,
+    right:`
+      <div class="stage-content">
+        <div class="stage-tag"><span class="stage-tag-num">05</span> Sintesi</div>
+        <h1 class="stage-title">Cinque mosse,<br>una sola idea.</h1>
+        <div class="stage-body" style="margin-bottom:8px">
+          <p>Il docente <b>non smette mai di essere autore</b>. L'AI non è un decisore, è un interlocutore competente.</p>
+        </div>
+        <div class="synth-grid">
+          <div class="synth-card">
+            <div class="synth-card-num">①</div>
+            <div class="synth-card-title">Il rifiuto</div>
+            <div class="synth-card-text">L'AI vede l'app. Tu vedi la classe. Quando contraddice la realtà, contraddicila.</div>
+          </div>
+          <div class="synth-card">
+            <div class="synth-card-num">②</div>
+            <div class="synth-card-title">Il ribaltamento</div>
+            <div class="synth-card-text">Da animazione passiva a riordino attivo. Stesso contenuto, cognizione opposta.</div>
+          </div>
+          <div class="synth-card">
+            <div class="synth-card-num">③</div>
+            <div class="synth-card-title">Il vincolo</div>
+            <div class="synth-card-text">Mac 22″, tempo, livello. I vincoli situano la soluzione.</div>
+          </div>
+          <div class="synth-card">
+            <div class="synth-card-num">④</div>
+            <div class="synth-card-title">Il bug invisibile</div>
+            <div class="synth-card-text">Conta caratteri, non concetti. Lo vedi solo guardando uno studente scrivere.</div>
+          </div>
+          <div class="synth-card" style="grid-column:span 2">
+            <div class="synth-card-num">⑤</div>
+            <div class="synth-card-title">Il diritto al feedback</div>
+            <div class="synth-card-text">La scelta etica diventa un bottone. Il feedback non è un premio, è il punto.</div>
+          </div>
+        </div>
+      </div>`,
+  },
+
+  // ========== 12. CALL TO ACTION ==========
+  {
+    type:'protocol',
+    leftIllustration:`
+      <div style="padding:50px;height:100%;display:flex;flex-direction:column;justify-content:center;background:var(--crema);width:100%">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.12em;color:var(--blu);margin-bottom:18px">Per chi ha già un'app sul portale</div>
+        <h2 style="font-family:'Fraunces',serif;font-style:italic;font-size:42px;font-weight:600;color:var(--blu);line-height:1.05;margin-bottom:30px">La tua app<br>è pronta per<br>la classe?</h2>
+        <div style="background:#fff;border:1px solid var(--grigio-2);border-radius:10px;padding:28px;max-width:430px;box-shadow:0 4px 24px -8px rgba(18,62,144,0.08)">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ambra);margin-bottom:14px;font-weight:600">Check-list pre-classe</div>
+          <ul class="check-list">
+            <li>Ho deciso <b>cosa osservare</b>, non solo cosa misurare</li>
+            <li>Ho previsto <b>una via di uscita</b> per chi non finisce</li>
+            <li>So distinguere <b>"funziona"</b> da <b>"hanno capito"</b></li>
+            <li>Sono pronto a <b>riaprire la chat</b> dopo</li>
+          </ul>
+        </div>
+      </div>`,
+    right:`
+      <div class="stage-content">
+        <div class="stage-tag"><span class="stage-tag-num">06</span> Il protocollo</div>
+        <h1 class="stage-title lg">Riportate<br>le vostre app<br>in <em>classe</em>.</h1>
+        <div class="stage-body" style="font-size:18px">
+          <p>Ogni app che avete pubblicato sul portale è una <b>prima versione</b>. La seconda nasce dopo aver guardato i vostri studenti usarla.</p>
+        </div>
+        <ol class="protocol-list">
+          <li class="protocol-item">
+            <div class="protocol-num">1</div>
+            <div class="protocol-text"><strong>Sperimentate in classe</strong> con un gruppo pilota — anche una sola classe basta.</div>
+          </li>
+          <li class="protocol-item">
+            <div class="protocol-num">2</div>
+            <div class="protocol-text"><strong>Annotate solo comportamenti</strong>, non opinioni. Cosa fanno, dove cliccano, cosa saltano.</div>
+          </li>
+          <li class="protocol-item">
+            <div class="protocol-num">3</div>
+            <div class="protocol-text"><strong>Tornate alla chat</strong> con quelle osservazioni concrete — non con un "miglioralo".</div>
+          </li>
+          <li class="protocol-item">
+            <div class="protocol-num">4</div>
+            <div class="protocol-text"><strong>Esercitate governance</strong>. Quando l'AI propone qualcosa che non torna con la vostra classe, dite no.</div>
+          </li>
+        </ol>
+      </div>`,
+  },
+];
+
+// ============================================================
+// RENDERING
+// ============================================================
+const stage = document.getElementById('stage');
+const progFill = document.getElementById('progFill');
+const curNum = document.getElementById('curNum');
+const totNum = document.getElementById('totNum');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+
+let currentIdx = 0;
+totNum.textContent = String(slides.length).padStart(2,'0');
+
+function renderSlide(idx){
+  const s = slides[idx];
+  let leftHTML = '';
+  let rightHTML = s.right || '';
+
+  if(s.isCover || s.type==='premise' || s.type==='synth' || s.type==='protocol'){
+    const label = s.isCover ? 'Apertura' :
+                  s.type==='premise' ? 'Il caso · Truffa della Ballerina' :
+                  s.type==='synth' ? 'Sintesi visuale' :
+                  'Protocollo operativo';
+    leftHTML = `<div class="chat-pane" style="background:var(--crema)">
+      <div class="chat-header">
+        <div class="chat-header-dot" style="background:var(--blu)"></div>
+        <div class="chat-header-label">${label}</div>
+      </div>
+      <div style="flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:20px">
+        ${s.leftIllustration}
+      </div>
+    </div>`;
+  } else {
+    const messagesHTML = s.chat.map(m => `
+      <div class="message ${m.speaker}">
+        <div class="message-meta">
+          <div class="avatar-mini">${m.speaker==='andrea'?'A':'C'}</div>
+          ${m.speaker==='andrea' ? 'Andrea · docente' : 'Claude · AI'}
+        </div>
+        <div class="bubble">${m.text}</div>
+      </div>`).join('');
+
+    leftHTML = `<div class="chat-pane">
+      <div class="chat-header">
+        <div class="chat-header-dot"></div>
+        <div class="chat-header-label">Chat · Truffa della Ballerina</div>
+      </div>
+      <div class="chat-scroll">${messagesHTML}</div>
+    </div>`;
+  }
+
+  const rightClasses = s.type==='premise' ? 'stage-pane premise-pane' : 'stage-pane';
+  stage.innerHTML = leftHTML + `<div class="${rightClasses}">${rightHTML}</div>`;
+
+  progFill.style.width = `${((idx+1)/slides.length)*100}%`;
+  curNum.textContent = String(idx+1).padStart(2,'0');
+  prevBtn.disabled = idx===0;
+  nextBtn.disabled = idx===slides.length-1;
+}
+
+function nextSlide(){ if(currentIdx<slides.length-1){currentIdx++;renderSlide(currentIdx);} }
+function prevSlide(){ if(currentIdx>0){currentIdx--;renderSlide(currentIdx);} }
+
+prevBtn.addEventListener('click', prevSlide);
+nextBtn.addEventListener('click', nextSlide);
+document.addEventListener('keydown', (e) => {
+  if(e.key==='ArrowRight' || e.key===' ') nextSlide();
+  else if(e.key==='ArrowLeft') prevSlide();
+  else if(e.key==='f' || e.key==='F'){
+    if(!document.fullscreenElement) document.documentElement.requestFullscreen();
+    else document.exitFullscreen();
+  }
+});
+
+renderSlide(0);
+</script>
+</body>
+</html>
